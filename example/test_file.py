@@ -34,8 +34,8 @@ class FileParser(Vad):
         return SUCCESS
 
 if __name__ == "__main__":
-   from audio import Audio
-   play = Audio()
+   #from audio import Audio
+   #play = Audio()
    _files = sys.argv[1:] 
    stream_test = FileParser()
    for _file in _files:

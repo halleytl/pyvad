@@ -26,7 +26,6 @@ def save_file(data, filename=None, sampwidth=2, channels=1, rate=16000):
         filename = datetime.now().strftime("%Y%m%d%H%M%S") + "_%s.pcm"
         flag = 0
         while 1:
-            print filename
             tmp = filename % flag
             if os.path.isfile(tmp):
                 flag += 1
