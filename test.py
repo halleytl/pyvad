@@ -3,25 +3,9 @@
 
 from time import sleep
 import numpy as np
+from base import Audio
 import threading 
-from util import save_file
-
-#需要添加录音互斥功能能,某些功能开启的时候录音暂时关闭
-def ZCR(wave_data):
-    #过零率
-    curFrame = wave_data[np.arange(0, len(wave_data))]
-    tmp1 = curFrame[:-1]
-    tmp2 = curFrame[1:]
-    sings = (tmp1*tmp2<=0)
-    diffs = (tmp1-tmp2)>0.02
-    zcr = np.sum(sings*diffs)
-    return zcr
-
-def STE(wave_data):
-    #短时能量
-    curFrame = wave_data[np.arange(0, len(wave_data))]
-    amp = np.sum(np.abs(curFrame))
-    return amp
+from vad import Vad
 
 class Vad(object):
     def __init__(self): #初始短时能量高门限
@@ -61,45 +45,63 @@ class Vad(object):
         #最大缓存长度
         self.cache_frames_num = 0
         
+        #self.record = Audio(chuck=self.frame_len)
+        #self.active = False
         self.end_flag = False
-        self.wait_flag = False
-        self.on = True
+        #self.play = Audio()
+        #    pass
+    def play_data(self, data):
+        t = threading.Thread(target=self.play.play_stream, args=(data,))
+        t.setDaemon(True)
+        t.start()
 
-    def go(self):
-        self.wait_flag = False
+    def start_mic(self):
+        print "start recording"
+        t = threading.Thread(target=self.mic_record)
+        t.setDaemon(True)
+        t.start()
+    def mic_record(self):
+        self.record.record_stream_start()
+        self.active = True
+        print "The microphone has opened"
+        while self.active: 
+            data = self.record.record_read()
+            self.cache_frames.append(data)
 
-    def wait(self):
-        self.wait_flag = True
-    def stop(self):
-        self.on = False
-
+        self.record.record_stream_end()
+ 
+    def close_mic(self):
+        print "close_mic() enable"
+        if self.record:
+            self.active = False
+            
     def run(self, fun=None):
-        if fun is None: 
-            fun = save_file 
-        print "开始执行音频端点检测" 
+        #record_stream = self.record.read_file_data("1.pcm")[-1]
+        #wave_data = np.fromstring(record_stream, dtype=np.int16)
         step = self.frame_len - self.frame_inc
         num = 0
-        while self.on:
+        while 1:
             #开始端点
             #获得音频文件数字信号
-            if self.wait_flag:
-                sleep(1)
-                continue
+            #print "--record---"
             if len(self.cache_frames) <2:
-                print "当前缓存中无数据等待接收数据"
                 sleep(1)
                 continue
             record_stream = "".join(self.cache_frames[:2])
             wave_data = np.fromstring(record_stream, dtype=np.int16)
+            #print wave_data[np.arange(0, self.frame_len)]
+            #raw_input()
             wave_data = wave_data*1.0/self.max_en  
             data = wave_data[np.arange(0, self.frame_len)]
             speech_data = self.cache_frames.pop(0)
+            #speech_data = tmpwd[np.arange(num*step, num*step +self.frame_len)]
             #获得音频过零率
             zcr = ZCR(data)
             #获得音频的短时能量, 平方放大
-            amp = STE(data)**2
+            amp = short_energy(data)**2
             #返回当前音频数据状态
             res = self.speech_status(amp, zcr)
+            print res,
             num = num+1
             self.frames_start.append(speech_data)
             self.frames_start_num += 1
@@ -113,13 +115,12 @@ class Vad(object):
                  #下一段语音开始，或达到缓存阀值
                  if res == 2 or self.frames_end_num == self.offsete :
                      speech_stream =  b"".join(self.frames+self.frames_end)
-                     fun(speech_stream)
-                               
+                     
+                     self.play.play_stream(speech_stream)
                      #数据环境初始化
                      self.end_flag = False
                      self.frames = []
                      self.frames_end_num = 0
-                     self.frames_end = []
                    
                  self.frames_end.append(speech_data) 
             if res == 2:
@@ -133,8 +134,9 @@ class Vad(object):
                 self.frames.append(speech_data)
                 #开启音频结束标志
                 self.end_flag = True
+                #play.play_stream(b"".join(self.frames))
+                #加上前后偏移数据后，然后调用相关函数
             self.cur_status = res
-        return 0
 
     def speech_status(self, amp, zcr):
         status = 0
@@ -151,6 +153,7 @@ class Vad(object):
                 self.count += 1
             #静音状态
             else:  
+                #amp1 = min(amp1, amp)
                 status = 0
                 self.count = 0
                 self.count =0
@@ -178,3 +181,8 @@ class Vad(object):
                     self.silence =0
                     self.count = 0
         return status
+
+if __name__ == "__main__":
+    a = Vad()
+    a.start_mic()
+    a.run()
