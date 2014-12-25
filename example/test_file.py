@@ -37,6 +37,9 @@ if __name__ == "__main__":
    #from audio import Audio
    #play = Audio()
    _files = sys.argv[1:] 
+   if not _files:
+       print "需要执行命令\"python %s 1.pcm\"" % __file__
+       sys.exit(1)
    stream_test = FileParser()
    for _file in _files:
        if stream_test.read_file(_file) == SUCCESS:
