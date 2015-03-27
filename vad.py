@@ -9,7 +9,7 @@ from util import save_file
 #需要添加录音互斥功能能,某些功能开启的时候录音暂时关闭
 def ZCR(wave_data):
     #过零率
-    curFrame = wave_data[np.arange(0, len(wave_data))]
+    #curFrame = wave_data[np.arange(0, len(wave_data))]
     tmp1 = curFrame[:-1]
     tmp2 = curFrame[1:]
     sings = (tmp1*tmp2<=0)
@@ -19,7 +19,7 @@ def ZCR(wave_data):
 
 def STE(wave_data):
     #短时能量
-    curFrame = wave_data[np.arange(0, len(wave_data))]
+    #curFrame = wave_data[np.arange(0, len(wave_data))]
     amp = np.sum(np.abs(curFrame))
     return amp
 
