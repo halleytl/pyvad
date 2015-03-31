@@ -45,12 +45,13 @@ if __name__ == "__main__":
    play = Audio()
    _files = sys.argv[1:] 
    stream_test = FileParser()
+   stream_test.callback=mplayer
    for _file in _files:
        if stream_test.read_file(_file) == SUCCESS:
            print _file
    
    #t = threading.Thread(target=stream_test.run)
-   t = threading.Thread(target=stream_test.run, kwargs={"fun":mplayer})
+   t = threading.Thread(target=stream_test.run)
    #t.setDaemon(True)
    t.start()
    t.join()

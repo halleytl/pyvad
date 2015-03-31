@@ -58,7 +58,16 @@ def main():
     import time
     while 1:
         
-        time.sleep(5)
+        try:
+            time.sleep(5)
+        except KeyboardInterrupt, e:
+            #time.sleep(5)
+            stream_test.close_mic()
+            break
+    import util
+    data = "".join(stream_test.cache_frames)      
+    util.save_file(data)
+    stream_test.play_stream(data)
 
 if __name__ == "__main__":
     main()
