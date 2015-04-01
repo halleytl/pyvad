@@ -29,6 +29,7 @@ class FileParser(Vad):
              end = i+1
              if tmp > int(tmp):
                  pass
+             self.cache_frames.append(-1)
                  #data = datas[end*block_size:len(datas_size)]+"\0"*256
                  #self.cache_frames.append(data[:256])
         return SUCCESS

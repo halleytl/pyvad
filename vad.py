@@ -98,7 +98,7 @@ class Vad(object):
     def stop(self):
         self.on = False
 
-    def run(self, sound=None):
+    def run(self):
         print "开始执行音频端点检测" 
         step = self.frame_len - self.frame_inc
         num = 0
@@ -113,12 +113,9 @@ class Vad(object):
             if len(self.cache_frames) <2:
                 sleep(0.05)
                 continue
-            if sound:
-                if sound.status:
-                    self.set_amph(sound.volume)
-                else:
-                    self.amp1 = 140
-
+             
+            if self.cache_frames[2] == -1:
+                break
             record_stream = "".join(self.cache_frames[:2])
             wave_data = np.fromstring(record_stream, dtype=np.int16)
             wave_data = wave_data*1.0/self.max_en  
@@ -127,17 +124,17 @@ class Vad(object):
             #获得音频过零率
             zcr = ZCR(data)
             #获得音频的短时能量, 平方放大
-            amp = STE(data)**2
+            amp = STE(data) ** 2
             #返回当前音频数据状态
             res = self.speech_status(amp, zcr)
             #print res,
-            num = num+1
+            num = num + 1
             self.frames_start.append(speech_data)
             self.frames_start_num += 1
             if self.frames_start_num == self.offsets:
                 #开始音频开始的缓存部分
                 self.frames_start.pop(0)
-                self.frames_start_num -=1
+                self.frames_start_num -= 1
             if self.end_flag:  
                  #当音频结束后进行后部缓存
                  self.frames_end_num +=1
