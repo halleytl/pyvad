@@ -8,7 +8,7 @@ import threading
 
 class StreamParser(Vad):
     def __init__(self):
-        self.record = Audio(chuck=256)
+        self.record = Audio()
         self.active = False
         self.play =Audio()
         Vad.__init__(self)
@@ -25,7 +25,7 @@ class StreamParser(Vad):
         print "The microphone has opened"
         while self.active: 
             data = self.record.record_read()
-            self.cache_frames.append(data)
+            self.add(data)
         self.record.record_stream_end()
         print "exit mic"
          

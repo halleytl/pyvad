@@ -32,14 +32,13 @@ def save_file(data, filename=None, sampwidth=2, channels=1, rate=16000):
             else:
                 filename = tmp
                 break
-    print "开始写入数据到文件%s" % filename
     write_file = wave.open(filename, 'wb')
     write_file.setnchannels(channels)
     write_file.setsampwidth(sampwidth)
     write_file.setframerate(rate)
     write_file.writeframes(data)
     write_file.close()
-    return filename
+    return os.path.abspath(filename)
 
         
 

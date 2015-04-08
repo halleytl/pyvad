@@ -14,34 +14,18 @@ class FileParser(Vad):
         self.block_size = 256
         Vad.__init__(self)
     def read_file(self, filename):
-        print "filename"
         if not os.path.isfile(filename):
             print "文件%s不存在" % filename
             return FAIL
         datas = read_file_data(filename)[-1]     
-        datas_size = len(datas)
-        tmp =  len(datas)*1.0/self.block_size
-        blocks = int(tmp)
-        print blocks
-        for i in range(blocks):
-             self.cache_frames.append(datas[i*self.block_size:(i+1)*self.block_size])
-        else:
-             end = i+1
-             if tmp > int(tmp):
-                 pass
-             self.cache_frames.append(-1)
-                 #data = datas[end*block_size:len(datas_size)]+"\0"*256
-                 #self.cache_frames.append(data[:256])
-        return SUCCESS
+        self.add(datas, False)
 
 if __name__ == "__main__":
-   from audio import Audio
-   play = Audio()
-   _files = sys.argv[1:] 
+   #from audio import Audio
+   #play = Audio()
+   _file = sys.argv[1] 
    stream_test = FileParser()
-   for _file in _files:
-       if stream_test.read_file(_file) == SUCCESS:
-           print _file
+   stream_test.read_file(_file)
    
    t = threading.Thread(target=stream_test.run)
    #t = threading.Thread(target=stream_test.run, kwargs={"fun":play.play_stream})

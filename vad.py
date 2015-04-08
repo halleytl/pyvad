@@ -56,25 +56,16 @@ class Vad(object):
         self.frames_end_num = 0
         #缓存数据
         self.cache_frames = []
+        self.cache = ""
         #最大缓存长度
         self.cache_frames_num = 0
         self.end_flag = False
         self.wait_flag = False
         self.on = True
         self.callback = None
-    def set_amph(self, volume):
-        
-        if 90 < volume <= 100:
-            self.amp1 = 21000
-        elif 80 < volume <= 90:
-            self.amp1 = 19000
-        elif 70 < volume <= 80:
-            self.amp1 = 7000
-        elif 60 < volume <= 70:
-            self.amp1 = 2000
-        else:
-            self.amp1 = 600
-          
+        self.callback_res = []
+        self.callback_kwargs = {}
+
     def clean(self):
         self.frames = []
         #数据开始偏移
@@ -98,8 +89,24 @@ class Vad(object):
     def stop(self):
         self.on = False
 
+    def add(self, frame, wait=True):
+        if wait:
+            frame = self.cache + frame
+            
+        
+        while len(frame) > self.frame_len: 
+           frame_block = frame[:self.frame_len] 
+           self.cache_frames.append(frame_block) 
+           frame = frame[self.frame_len:]
+        if wait:
+            self.cache = frame
+        else:
+            self.cache = ""
+            self.cache_frames.append(-1)
+       
+           
     def run(self):
-        print "开始执行音频端点检测" 
+        #print "开始执行音频端点检测" 
         step = self.frame_len - self.frame_inc
         num = 0
         if self.callback is None:
@@ -114,7 +121,7 @@ class Vad(object):
                 sleep(0.05)
                 continue
              
-            if self.cache_frames[2] == -1:
+            if self.cache_frames[1] == -1:
                 break
             record_stream = "".join(self.cache_frames[:2])
             wave_data = np.fromstring(record_stream, dtype=np.int16)
@@ -141,7 +148,7 @@ class Vad(object):
                  #下一段语音开始，或达到缓存阀值
                  if res == 2 or self.frames_end_num == self.offsete :
                      speech_stream =  b"".join(self.frames+self.frames_end)
-                     self.callback(speech_stream)
+                     self.callback_res.append(self.callback(speech_stream, **self.callback_kwargs))
                                
                      #数据环境初始化
                      #self.clean()
@@ -165,7 +172,7 @@ class Vad(object):
                 self.end_flag = True
                
             self.cur_status = res
-        return 0
+        #return self.callback_res
 
     def speech_status(self, amp, zcr):
         status = 0

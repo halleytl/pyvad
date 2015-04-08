@@ -19,19 +19,7 @@ class FileParser(Vad):
             print "文件%s不存在" % filename
             return FAIL
         datas = read_file_data(filename)[-1]     
-        datas_size = len(datas)
-        tmp =  len(datas)*1.0/self.block_size
-        blocks = int(tmp)
-        print blocks
-        for i in range(blocks):
-             self.cache_frames.append(datas[i*self.block_size:(i+1)*self.block_size])
-        else:
-             end = i+1
-             if tmp > int(tmp):
-                 pass
-                 #data = datas[end*block_size:len(datas_size)]+"\0"*256
-                 #self.cache_frames.append(data[:256])
-        return SUCCESS
+        self.add(datas, False)
 
 def mplayer(data):
    import os
